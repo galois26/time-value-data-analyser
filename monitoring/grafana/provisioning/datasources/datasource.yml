@@ -1,0 +1,13 @@
+# Automatically provisions Prometheus as a Grafana data source.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    editable: true
+    isDefault: true
+    url: http://prometheus:9090     # Compose service name
+    jsonData:
+      httpMethod: POST
+      timeInterval: 15s             # Match Prometheus scrape interval if you like

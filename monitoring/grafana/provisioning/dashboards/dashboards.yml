@@ -1,0 +1,13 @@
+# Auto-creates a "Infrastructure" folder for dashboards.
+# You can drop JSON dashboard files into /var/lib/grafana/dashboards and reference them here.
+apiVersion: 1
+
+providers:
+  - name: "Infrastructure"
+    folder: "Infrastructure"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /usr/share/grafana/provisioning/dashboards/content

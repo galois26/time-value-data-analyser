@@ -1,0 +1,49 @@
+# prometheus/rules/general.rules.yml
+# Alerting rules for host health. Safe YAML with block scalars for text fields.
+
+groups:
+  - name: host-alerts
+    rules:
+      # Node/exporter is down (target not up)
+      - alert: InstanceDown
+        expr: up{job="node"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: |-
+            The node-exporter target on {{ $labels.instance }} has been unreachable for over 2 minutes.
+
+      # High CPU usage across all cores
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.instance }}"
+          description: |-
+            CPU utilization has averaged over 85% for the last 5 minutes.
+
+      # Low free disk space (<10%) on any non-ephemeral filesystem
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) * 100 < 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: |-
+            One or more filesystems on {{ $labels.instance }} have less than 10% free space for 10 minutes.
+
+      # High memory usage (>90%)
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: |-
+            Memory utilization has exceeded 90% for 10 minutes.

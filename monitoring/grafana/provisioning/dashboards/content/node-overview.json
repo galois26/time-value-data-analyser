@@ -1,0 +1,39 @@
+{
+  "title": "Node Overview (Minimal)",
+  "uid": "node-overview-min",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "CPU Utilization",
+      "targets": [
+        {
+          "expr": "100 - (avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Used %",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
+        }
+      ],
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Root FS Free %",
+      "targets": [
+        {
+          "expr": "(node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\",mountpoint=\"/\"}) * 100"
+        }
+      ],
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 }
+    }
+  ]
+}

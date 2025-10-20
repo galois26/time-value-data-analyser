@@ -1,0 +1,82 @@
+version: "3.8"
+
+name: monitoring-stack
+
+services:
+  prometheus:
+    image: prom/prometheus:latest  # Prometheus time-series database and scraper
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"                # Expose Prometheus UI on host: http://localhost:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro   # Main config
+      - ./prometheus/rules:/etc/prometheus/rules:ro                     # Alerting/recording rules
+      - prometheus-data:/prometheus                                     # Persistent TSDB storage
+    command:
+      # Enable external config, adjust scrape/TSDB retention, and load rules.
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d        # Keep 15 days of metrics; adjust to your needs
+      - --web.enable-lifecycle                   # Allows POST /-/reload to hot-reload config
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"                # Alertmanager UI on host: http://localhost:9093
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro  # Routing + receivers
+      - alertmanager-data:/alertmanager                                       # Silences & state
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"                # Grafana UI on host: http://localhost:3000
+    environment:
+      # Admin credentials (override via .env to avoid hardcoding)
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      # Enable Prometheus-style /metrics for Grafana itself (scraped by Prometheus)
+      - GF_METRICS_ENABLED=true
+      # Load provisioning files on startup
+      - GF_PATHS_PROVISIONING=/usr/share/grafana/provisioning
+    volumes:
+      - grafana-data:/var/lib/grafana                                     # Persistent Grafana data
+      - ./grafana/grafana.ini:/usr/share/grafana/grafana.ini:ro                 # Base Grafana config
+      - ./grafana/provisioning:/usr/share/grafana/provisioning:ro               # Datasources & dashboards
+   #   - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro 
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    # Use bridge networking and publish 9100 so Prometheus can reach it at "node-exporter:9100".
+    ports:
+      - "9100:9100"
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:

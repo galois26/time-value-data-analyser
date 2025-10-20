@@ -1,0 +1,17 @@
+# alertmanager/alertmanager.yml
+# Minimal, valid Alertmanager config with a default route.
+# This will accept alerts and mark them as "firing" in the UI,
+# but it won't send notifications anywhere until you add a real receiver.
+
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "default"          # REQUIRED: the root route must specify a receiver
+  group_by: ["alertname", "instance", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+
+receivers:
+  - name: "default"            # No integrations yet (safe no-op)
