@@ -1,0 +1,105 @@
+{
+  "uid": "crypto-btc-wallets-joined",
+  "title": "Crypto • BTC Wallets (Joined)",
+  "schemaVersion": 38,
+  "version": 1,
+  "timezone": "browser",
+  "tags": ["crypto", "btc", "exporter"],
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "type": "table",
+      "title": "Wallet Balances (BTC + Fiat, joined by address)",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 12 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "btc_wallet_balance_btc{address=~\"$address\"}",
+          "instant": true
+        },
+        {
+          "refId": "B",
+          "expr": "btc_wallet_balance_fiat{address=~\"$address\"}",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        { "id": "labelsToFields", "options": { "mode": "rows" } },
+        { "id": "joinByField", "options": { "byField": "address" } },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "address": 0,
+              "Value": 1,
+              "Value (B)": 2,
+              "currency (B)": 3
+            },
+            "renameByName": {
+              "Value": "BTC",
+              "Value (B)": "Fiat",
+              "currency (B)": "Currency"
+            }
+          }
+        }
+      ],
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": {
+        "defaults": { "custom": {}, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green" } ] } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "BTC" }, "properties": [ { "id": "unit", "value": "btc" }, { "id": "decimals", "value": 8 } ] },
+          { "matcher": { "id": "byName", "options": "Fiat" }, "properties": [ { "id": "unit", "value": "currency" }, { "id": "decimals", "value": 2 } ] }
+        ]
+      },
+      "description": "Joins the latest BTC and Fiat balances per address. If fiat is disabled, the Fiat column will be empty."
+    },
+    {
+      "type": "stat",
+      "title": "Total BTC (all addresses)",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 6 },
+      "targets": [ { "refId": "C", "expr": "sum(btc_wallet_balance_btc{address=~\"$address\"})", "instant": true } ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "btc", "decimals": 8 }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "Total Fiat (all addresses)",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 6 },
+      "targets": [ { "refId": "D", "expr": "sum(btc_wallet_balance_fiat{address=~\"$address\"})", "instant": true } ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "currency", "decimals": 2 }, "overrides": [] },
+      "description": "Shows N/A if fiat conversion is disabled."
+    },
+    {
+      "type": "stat",
+      "title": "Implied BTC Price",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        {
+          "refId": "E",
+          "expr": "sum(btc_wallet_balance_fiat{address=~\"$address\"}) / sum(btc_wallet_balance_btc{address=~\"$address\"})",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "currency", "decimals": 2 }, "overrides": [] },
+      "description": "Derived from Fiat/BTC sums."
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "address",
+        "label": "Address",
+        "hide": 0,
+        "datasource": null,
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "query": "label_values(btc_wallet_balance_btc, address)",
+        "current": {}
+      }
+    ]
+  }
+}

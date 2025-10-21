@@ -33,7 +33,29 @@ services:
       - alertmanager-data:/alertmanager                                       # Silences & state
     networks:
       - monitoring
-
+ 
+  # Exposes BTC wallet balances as Prometheus metrics on :9108
+  btc-wallet-exporter:
+    # Option 1: use a locally built image (from the exporter repo you just built)
+    image: btc-wallet-exporter:latest
+      # Option 2 (alternative): build here (uncomment if you want compose to build it)
+      # build:
+      #   context: ./btc-wallet-exporter
+      #   dockerfile: Dockerfile
+    container_name: btc-wallet-exporter
+    restart: unless-stopped
+    ports:
+      - "9108:9108"                       # expose metrics/healthz to host (optional)
+    volumes:
+      - ./btc-wallet-exporter/config.yml:/config.yml:ro  # your addresses & settings
+    environment:
+      # (Optional) override config via flags/env if you want:
+      # - BTC_EXPORTER_INTERVAL=30s
+      # - BTC_EXPORTER_LOG=info
+      # Not required when using config.yml.
+      - TZ=UTC
+    networks:
+      - monitoring
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -57,6 +79,18 @@ services:
       - prometheus
     networks:
       - monitoring
+
+
+#btc-wallet-exporter:
+#  image: btc-wallet-exporter:latest
+#  container_name: btc-wallet-exporter
+#  restart: unless-stopped
+#  ports:
+#    - "9108:9108"
+#  volumes:
+#    - ./btc-wallet-exporter/config.yml:/config.yml:ro
+#  networks:
+#    - monitoring
 
   node-exporter:
     image: prom/node-exporter:latest

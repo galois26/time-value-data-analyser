@@ -1,0 +1,119 @@
+{
+  "uid": "crypto-btc-wallets",
+  "title": "Crypto • BTC Wallets",
+  "schemaVersion": 38,
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "tags": ["crypto", "btc", "exporter"],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total BTC",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "targets": [
+        { "expr": "sum(btc_wallet_balance_btc)", "instant": true, "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" },
+      "fieldConfig": { "defaults": { "unit": "btc", "decimals": 8 }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "Total Fiat (sum)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "targets": [
+        { "expr": "sum(btc_wallet_balance_fiat)", "instant": true, "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" },
+      "fieldConfig": { "defaults": { "unit": "currency", "decimals": 2 }, "overrides": [] },
+      "description": "If fiat conversion is disabled, this will show N/A."
+    },
+    {
+      "type": "stat",
+      "title": "Exporter Up",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "targets": [
+        { "expr": "up{job=\"btc-wallet-exporter\"}", "instant": true, "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" },
+      "fieldConfig": { "defaults": { "decimals": 0 }, "overrides": [] },
+      "description": "1 = healthy, 0 = down"
+    },
+    {
+      "type": "stat",
+      "title": "Last Successful Scrape (Unix s)",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "targets": [
+        { "expr": "max(btc_exporter_last_success_timestamp_seconds)", "instant": true, "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 0 }, "overrides": [] },
+      "description": "Unix seconds. (If you prefer an ISO date, we can add a transform to multiply by 1000 and change the unit.)"
+    },
+    {
+      "type": "table",
+      "title": "Balances (BTC) per Address",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 12 },
+      "targets": [
+        {
+          "expr": "btc_wallet_balance_btc{address=~\"$address\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": { "unit": "btc", "decimals": 8 },
+        "overrides": []
+      },
+      "transformations": [
+        { "id": "labelsToFields", "options": { "mode": "rows" } }
+      ],
+      "description": "Instant vector with columns for labels (address) and value."
+    },
+    {
+      "type": "table",
+      "title": "Balances (Fiat) per Address",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 12 },
+      "targets": [
+        {
+          "expr": "btc_wallet_balance_fiat{address=~\"$address\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": { "unit": "currency", "decimals": 2 },
+        "overrides": []
+      },
+      "transformations": [
+        { "id": "labelsToFields", "options": { "mode": "rows" } }
+      ],
+      "description": "Shows currency label if present. If fiat is disabled, panel will be empty."
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "address",
+        "label": "Address",
+        "hide": 0,
+        "datasource": null,
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "query": "label_values(btc_wallet_balance_btc, address)",
+        "current": {},
+        "options": []
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {}
+}
