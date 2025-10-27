@@ -1,0 +1,55 @@
+# loki/loki-config.yml
+server:
+  http_listen_port: 3100
+  log_level: info
+  
+auth_enabled: false
+
+common:
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+# Store chunks & index on local disk using boltdb-shipper (simple & reliable)
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/boltdb-cache
+    shared_store: filesystem
+  filesystem:
+    directory: /loki/chunks
+
+# Compactor applies retention and compaction
+compactor:
+  working_directory: /loki/compactor
+  shared_store: filesystem
+  compactor_ring:
+    kvstore:
+      store: inmemory
+
+# Global limits (tune later as needed)
+limits_config:
+  ingestion_rate_mb: 16
+  ingestion_burst_size_mb: 32
+  max_cache_freshness_per_query: 10m
+  retention_period: 365d   # keep logs for 1 year (adjust as desired)
+
+chunk_store_config:
+  max_look_back_period: 365d
+
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 365d

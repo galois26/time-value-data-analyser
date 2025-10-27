@@ -34,6 +34,42 @@ services:
     networks:
       - monitoring
  
+  # -------------------------------------------
+  # Loki: log storage & query engine (single-node)
+  # -------------------------------------------
+  loki:
+    image: grafana/loki:2.9.6
+    container_name: loki
+    restart: unless-stopped
+    command: [ "-config.file=/etc/loki/loki-config.yml" ]
+    ports:
+      - "3100:3100"             # Loki HTTP API (query/push): http://localhost:3100
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki         # TSDB + index storage
+    networks:
+      - monitoring
+
+  # -------------------------------------------
+  # Promtail: ships container & file logs to Loki
+  # -------------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.6
+    container_name: promtail
+    restart: unless-stopped
+    command: [ "-config.file=/etc/promtail/promtail-config.yml" ]
+    volumes:
+      # Read Docker logs (json-file driver)
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Your extra log directories can be mounted under ./promtail/logs (host)
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ./promtail/logs:/logs:ro
+    depends_on:
+      - loki
+    networks:
+      - monitoring
+  
   # Exposes BTC wallet balances as Prometheus metrics on :9108
   btc-wallet-exporter:
     # Option 1: use a locally built image (from the exporter repo you just built)
@@ -56,6 +92,7 @@ services:
       - TZ=UTC
     networks:
       - monitoring
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -131,3 +168,4 @@ volumes:
   grafana-data:
   alertmanager-data:
   vm-data:
+  loki-data:
