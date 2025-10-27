@@ -1,2 +1,2 @@
 .env
-*.prom
+.gitignore
