@@ -11,3 +11,11 @@ datasources:
     jsonData:
       httpMethod: POST
       timeInterval: 15s             # Match Prometheus scrape interval if you like
+
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    isDefault: false            # keep Prometheus as default, or flip this if you prefer
+    url: http://victoria-metrics:8428
+    jsonData:
+      httpMethod: POST

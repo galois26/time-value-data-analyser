@@ -8,6 +8,14 @@ rule_files:
   # Load all alerting/recording rules from the rules folder
   - /etc/prometheus/rules/*.yml
 
+remote_write:
+  - url: http://victoria-metrics:8428/api/v1/write
+    # Optional tuning:
+    queue_config:
+      capacity: 20000
+      max_samples_per_send: 5000
+      max_shards: 4
+
 alerting:
   alertmanagers:
     # Send alerts to Alertmanager service (compose DNS: "alertmanager")
