@@ -1,0 +1,36 @@
+# HTTP server for the exporter
+server:
+listen_address: ":9108" # Address/port for /metrics and /healthz
+read_timeout: 5s
+write_timeout: 5s
+idle_timeout: 60s
+
+
+# List of BTC wallet addresses to track
+bitcoin:
+addresses:
+- "bc1qexampleaddress1111111111111111111111111"
+- "bc1qexampleaddress2222222222222222222222222"
+# If true, include unconfirmed mempool deltas in balance; default false (confirmed only)
+include_mempool: false
+# Provider options (Blockstream by default)
+provider:
+type: "blockstream"
+# Public HTTPS endpoint; change if you self-host Esplora
+base_url: "https://blockstream.info/api"
+# HTTP client settings for the provider
+timeout: 4s
+user_agent: "btc-wallet-exporter/1.0"
+
+
+# Optional: report balances in fiat using CoinGecko
+price:
+enabled: true
+currency: "USD" # e.g., USD, EUR, GBP
+# Cache price for this long to avoid hammering the API
+cache_ttl: 60s
+provider:
+type: "coingecko"
+base_url: "https://api.coingecko.com/api/v3"
+timeout: 4s
+user_agent: "btc-wallet-exporter/1.0"

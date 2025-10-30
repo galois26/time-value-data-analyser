@@ -19,3 +19,11 @@ datasources:
     url: http://victoria-metrics:8428
     jsonData:
       httpMethod: POST
+
+  - name: Loki
+    type: loki
+    access: proxy
+    isDefault: false
+    url: http://loki:3100
+    jsonData:
+      maxLines: 5000

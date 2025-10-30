@@ -27,11 +27,12 @@ bitcoin:
 # Optional: report balances in fiat using CoinGecko
 price:
   enabled: true
-  currency: "USD" # e.g., USD, EUR, GBP
+  currency: "EUR" # e.g., USD, EUR, GBP
   # Cache price for this long to avoid hammering the API
   cache_ttl: 60s
   provider:
     type: "coingecko"
     base_url: "https://api.coingecko.com/api/v3"
+    api_key: "${COINGECKO_API_KEY}"   # <- can be left empty
     timeout: 4s
     user_agent: "btc-wallet-exporter/1.0"
