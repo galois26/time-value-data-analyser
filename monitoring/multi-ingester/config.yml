@@ -13,43 +13,42 @@ victoria:
 
 
 sources:
-  - type: gta
-    gta:
-      base_url: https://api.globaltradealert.org
-      api_key: bb31ee34348c65fd953b2575288ea6ef06ac8128 
-      http:
-        timeout: 15s
-        user_agent: multi-ingester/1.0
-        content_type: application/json
-      window: 336h                # rolling window (7 days)
-      state_path: /data/gta-state.json
-      date_filter: update_period 
+  #- type: gta
+  #  gta:
+  #    base_url: https://api.globaltradealert.org
+  #    api_key: bb31ee34348c65fd953b2575288ea6ef06ac8128 
+  #    http:
+  #      timeout: 15s
+  #      user_agent: multi-ingester/1.0
+  #      content_type: application/json
+  #    window: 336h                # rolling window (7 days)
+  #    state_path: /data/gta-state.json
+  #    date_filter: update_period 
      # since: "2025-10-01T00:00:00Z" # pull recent data
-      country: "" # optional
-      rate_per_second: 1.0
-      burst: 2
+  #    country: "" # optional
+  #    rate_per_second: 1.0
+  #    burst: 2
+  #    max_retries: 3
+  #    backoff: 500ms
+  #    max_backoff: 5s
+
+  - type: coindesk
+    coindesk:
+      base_url: https://data-api.coindesk.com
+      api_key: "${COINDESK_API_KEY}"   # optional for public tier
+      http:
+        timeout: 10s
+        user_agent: multi-ingester/1.0
+      topics: ["bitcoin","crypto"]
+      tags: ["ETF","regulation"]
+      language: EN
+      window: 24h
+      state_path: /data/coindesk-state.json
+      page_size: 100
+      max_pages: 3
       max_retries: 3
       backoff: 500ms
       max_backoff: 5s
-
-#  - type: coindesk
-#    coindesk:
-#      base_url: https://data-api.coindesk.com
-#      api_key: "${COINDESK_API_KEY}"   # optional for public tier
-#      http:
-#        timeout: 10s
-#        user_agent: multi-ingester/1.0
-#      topics: ["bitcoin","crypto"]
-#      tags: ["ETF","regulation"]
-#      language: EN
-#      window: 24h
-#      state_path: /data/coindesk-state.json
-#      page_size: 100
-#      max_pages: 3
-#      max_retries: 3
-#      backoff: 500ms
-#      max_backoff: 5s
-  
 
 
 postprocess:
