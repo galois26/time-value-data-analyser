@@ -1,0 +1,41 @@
+loki:
+  url: http://loki:3100
+  tenant_id: "" # set if Loki auth_enabled: true (e.g., "main")
+  job: multi-ingester
+
+
+victoria:
+  url: http://victoria-metrics:8428
+
+
+sources:
+  - type: gta
+    gta:
+      base_url: https://api.globaltradealert.org
+      api_key: "${GTA_API_KEY}" # optional
+      http:
+        timeout: 15s
+        user_agent: multi-ingester/1.0
+      since: "2025-10-01T00:00:00Z" # pull recent data
+      country: "" # optional
+
+
+postprocess:
+  keywords:
+    - when: ["tariff", "duty", "import tax"]
+      labels: { action: tariff }
+    - when: ["export ban", "export control", "licensing"]
+      labels: { action: export_control }
+  regex:
+    - field: title
+      expr: "(?i)anti-?dump(ing)?"
+      labels: { action: anti_dumping }
+maps:
+  - field: country
+    out_key: region
+    mapping: { "DE": "EU", "FR": "EU", "US": "NA" }
+
+
+metrics:
+  enable: true
+  rollup: 0s # currently unused; emission happens per run

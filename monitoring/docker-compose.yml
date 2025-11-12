@@ -119,6 +119,23 @@ services:
     networks:
       - monitoring
 
+  multi-ingester:
+    image: multi-ingester:latest
+    build:
+      context: ./multi-ingester
+      dockerfile: Dockerfile
+    container_name: multi-ingester
+    restart: unless-stopped
+    environment:
+      GTA_API_KEY: ${GTA_API_KEY}
+      COINDESK_API_KEY: ${COINDESK_API_KEY}
+    volumes:
+      - ./multi-ingester/config.yml:/config.yml:ro
+      - ./multi-ingester/data:/data
+    #depends_on:
+    #  - victoria-metrics
+    #  - loki
+    networks: [monitoring]
 
 #btc-wallet-exporter:
 #  image: btc-wallet-exporter:latest
